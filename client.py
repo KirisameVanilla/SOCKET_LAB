@@ -14,27 +14,42 @@ def receive_messages(client_socket):
                 if not data:
                     break
                 received_data += data
-            print(f"Received from server: {received_data.decode('utf-8')}")
+            print(f"{received_data.decode('utf-8')}")
         except ConnectionResetError:
             print("Connection to server closed.")
-            break
-        except BaseException:
-            print('Your client has been closed.')
-            break
+            return
+        except ConnectionAbortedError:
+            print(f'Your client has been closed.')
+            return
+        except BaseException as e:
+            print(f'{e}')
+            return
 
 
 def send_messages(client_socket):
     while True:
-        message = input()
+        message = ''
+        while True:
+            line = input()
+            if line == '':
+                message += '\n'
+            else:
+                message += line
+            if message.count('\n') >= 1:
+                break
+        message = message.rstrip('\n')
         if message == 'file':
             file_name = aof()
             file = open(f'{file_name}', 'r')
             content = file.read()
             print(f'READ:{content}')
             message = content
-        data_size = len(message).to_bytes(4, byteorder='big')
-        client_socket.sendall(data_size)
-        client_socket.sendall(message.encode('utf-8'))
+        if message == '':
+            pass
+        else:
+            data_size = len(message).to_bytes(4, byteorder='big')
+            client_socket.sendall(data_size)
+            client_socket.sendall(message.encode('utf-8'))
         if message.lower() == 'exit':
             break
 
@@ -42,8 +57,8 @@ def send_messages(client_socket):
 
 
 def main():
-    host = '127.0.0.1'
-    port = int(input("Plz type in wanted port."))
+    host = input('Plz type in wanted host ip\n')
+    port = int(input("Plz type in wanted port.\n"))
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((host, port))
     print(f"Connected to {host}:{port}")

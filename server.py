@@ -2,7 +2,8 @@ import socket
 import threading
 
 
-def send_data_to_clients(client_sockets, sender_socket, data):
+def send_data_to_clients(client_sockets, sender_socket, sender_addr, data):
+    data = f'{sender_addr}:{data}'
     for client in client_sockets:
         if not client == sender_socket:
             try:
@@ -31,7 +32,7 @@ def handle_client(client_socket, client_address, client_sockets):
                 print(f"Connection from {client_address} closed.")
                 break
             print(f"Received from {client_address}: {data_decode}")
-            send_data_to_clients(client_sockets, client_socket, data_decode)
+            send_data_to_clients(client_sockets, client_socket, client_address, data_decode)
     except ConnectionResetError:
         print(f'Connection from {client_address} aborted.')
     finally:
@@ -41,9 +42,23 @@ def handle_client(client_socket, client_address, client_sockets):
 
 def main():
     host = '127.0.0.1'
-    port = int(input("Plz type in wanted port."))
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind((host, port))
+    flag_bind = False
+    port = 0
+    while not flag_bind:
+        try:
+            user_input = input("Plz type in wanted port.\n")
+            if user_input == 'exit':
+                return
+            port = int(user_input)
+            server_socket.bind((host, port))
+            flag_bind = True
+        except OverflowError:
+            print('It seems that the port isn\'t a correct port')
+        except OSError:
+            print('It seems that the port isn\'t available...SAD :(')
+        except BaseException as e:
+            print(f'Some special errors occur!{e}')
     server_socket.listen(5)
     print(f"[*] Listening on {host}:{port}")
     client_sockets = []
