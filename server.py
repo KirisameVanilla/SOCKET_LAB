@@ -41,7 +41,7 @@ def handle_client(client_socket, client_address, client_sockets):
 
 
 def main():
-    host = '127.0.0.1'
+    host = input('Plz type in wanted host IP address.\n')
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     flag_bind = False
     port = 0
